@@ -7,8 +7,9 @@
 # - Si el número de minas es cero no pintar número
 # tkinter
 # class
-from tkinter import Tk, Button, Label
+from tkinter import Tk, Button, Label, PhotoImage
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 import settings
 from cell import Cell
@@ -32,18 +33,28 @@ if __name__ == '__main__':
                       foreground='green', font=('', 12, 'bold')).grid(row=0, column=2, ipady=2)
 
     # Game (cells)
-    frm_game = ttk.Frame(root, padding=10, name='frm_game')
+    frm_game = ttk.Frame(root, height=Cell.cell_size * settings.SIZE + 20, padding=10, name='frm_game')
     frm_game.grid(row=2, column=0)
+
+    # Set images
+    bomb = Image.open('images/bomb.png')
+    bomb_cell = bomb.resize((Cell.cell_size, Cell.cell_size))
+    chocoflag = Image.open('images/chocoflag.png')
+    chocoflag_cell = chocoflag.resize((Cell.cell_size, Cell.cell_size))
+    images = {
+        "plain": PhotoImage(width=Cell.cell_size, height=Cell.cell_size),
+        "mine": ImageTk.PhotoImage(bomb_cell),
+        "flag": ImageTk.PhotoImage(chocoflag_cell)
+    }
 
     # Create cells
     size = settings.SIZE
     for x in range(0, size):
         for y in range(0, size):
-            cell = Cell(root, frm_game, x, y)
+            cell = Cell(root, images, frm_game, x, y)
 
     # Set mines in cells randomly
     Cell.set_mines()
 
     root.mainloop()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

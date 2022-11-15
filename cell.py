@@ -1,37 +1,46 @@
 import math
+import platform
 import random
 import time
-# from tkinter.ttk import Button
 from tkinter import Button, messagebox
 
 import settings
+
+RIGHT_CLICK = "<Button-2>" if platform.system() == 'Darwin' else "<Button-3>"
 
 
 class Cell:
     all = []
     is_started = False
     start = None
+    cell_size = 50
+    root = None
+    images = None
 
-    def __init__(self, root, frame_game, x, y, is_mine=False):
+    def __init__(self, root, images, frame_game, x, y, is_mine=False):
+        # Set global vars. Only first time.
+        if Cell.root is None:
+            Cell.root = root
+        if Cell.images is None:
+            Cell.images = images
+
         self.x = x
         self.y = y
         self.is_mine = is_mine
         self.is_possible_mine = False
         self.is_opened = False
-        # self.btn = Button(frame_game, text="", width=4, height=2, bd=4)
-        self.btn = Button(frame_game, text="", width=4, height=2, command=self.show_cell, bd=4)
-        self.btn.bind("<Button-3>", self.right_click)
+        self.btn = Button(frame_game, text="", command=self.show_cell, bd=4, image=images["plain"], compound='center')
+        self.btn.bind(RIGHT_CLICK, self.right_click)
         self.btn.grid(row=self.x, column=self.y)
-        self.root = root
         Cell.all.append(self)
 
     def right_click(self, event):
         if not (self.is_possible_mine or self.is_opened):
-            event.widget.configure(background='yellow')
+            event.widget.configure(image=Cell.images['flag'])
             self.is_possible_mine = True
             possible_mines = [cell for cell in Cell.all if cell.is_possible_mine]
             mines_left = settings.NUM_MINES - len(possible_mines)
-            widget = self.root.nametowidget('frm_header.l_mines_left')
+            widget = Cell.root.nametowidget('frm_header.l_mines_left')
             widget.configure(text=mines_left)
 
     def show_cell(self):
@@ -40,7 +49,7 @@ class Cell:
         if not Cell.is_started:
             Cell.is_started = True
             Cell.start = time.time()
-            widget = self.root.nametowidget('frm_header.l_counter')
+            widget = Cell.root.nametowidget('frm_header.l_counter')
             widget.after(500, Cell.timer, widget)
         for cell in self.surrounded_cells:
             if cell.is_mine:
@@ -50,16 +59,16 @@ class Cell:
             possible_mines = [cell for cell in Cell.all if cell.is_possible_mine]
             mines_left = settings.NUM_MINES - len(possible_mines)
             if self.is_mine:
-                self.btn.configure(background='red')
+                self.btn.configure(image=Cell.images['mine'])
                 Cell.is_started = False
                 messagebox.showerror(title='You lose', message='Press ok to begin a new game')
                 Cell.reset()
             else:
-                self.btn.configure(bd=1, background='SystemButtonFace')
+                self.btn.configure(bd=1, image=Cell.images['plain'])
                 if self.is_possible_mine:
                     self.is_possible_mine = False
                     # TODO: Create function to count left mines
-                    widget = self.root.nametowidget('frm_header.l_mines_left')
+                    widget = Cell.root.nametowidget('frm_header.l_mines_left')
                     widget.configure(text=mines_left)
                 if count == 0:
                     for s_cell in self.surrounded_cells:
@@ -90,7 +99,7 @@ class Cell:
     def reset():
         for cell in Cell.all:
             cell.is_opened = False
-            cell.btn.configure(text="", bd=4, background='SystemButtonFace')
+            cell.btn.configure(text="", bd=4, image=Cell.images['plain'])
             cell.is_mine = False
             cell.is_possible_mine = False
         Cell.set_mines()
