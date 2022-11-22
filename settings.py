@@ -1,2 +1,3 @@
-SIZE = 10
-NUM_MINES = int(SIZE ** 2 * 0.15625)
+size_x = 8
+size_y = 8
+num_mines = 10

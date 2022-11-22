@@ -13,7 +13,7 @@ class Cell:
     all = []
     is_started = False
     start = None
-    cell_size = 50
+    cell_size = 40
     root = None
     images = None
 
@@ -29,7 +29,8 @@ class Cell:
         self.is_mine = is_mine
         self.is_possible_mine = False
         self.is_opened = False
-        self.btn = Button(frame_game, text="", command=self.show_cell, bd=4, image=images["plain"], compound='center')
+        self.btn = Button(frame_game, text="", font=('', 16), command=self.show_cell, bd=4, image=images["plain"],
+                          compound='center')
         self.btn.bind(RIGHT_CLICK, self.right_click)
         self.btn.grid(row=self.x, column=self.y)
         Cell.all.append(self)
@@ -39,7 +40,7 @@ class Cell:
             event.widget.configure(image=Cell.images['flag'])
             self.is_possible_mine = True
             possible_mines = [cell for cell in Cell.all if cell.is_possible_mine]
-            mines_left = settings.NUM_MINES - len(possible_mines)
+            mines_left = settings.num_mines - len(possible_mines)
             widget = Cell.root.nametowidget('frm_header.l_mines_left')
             widget.configure(text=mines_left)
 
@@ -57,7 +58,7 @@ class Cell:
         if not self.is_opened:
             self.is_opened = True
             possible_mines = [cell for cell in Cell.all if cell.is_possible_mine]
-            mines_left = settings.NUM_MINES - len(possible_mines)
+            mines_left = settings.num_mines - len(possible_mines)
             if self.is_mine:
                 self.btn.configure(image=Cell.images['mine'])
                 Cell.is_started = False
@@ -76,7 +77,7 @@ class Cell:
                 else:
                     self.btn.configure(text=f'{count}')
                 opened_cells = [cell for cell in Cell.all if cell.is_opened]
-                if len(opened_cells) == len(Cell.all) - settings.NUM_MINES:
+                if len(opened_cells) == len(Cell.all) - settings.num_mines:
                     Cell.is_started = False
                     elapsed = math.ceil(time.time() - Cell.start)
                     messagebox.showinfo(title=f'You win in {elapsed} seconds!!', message='Press ok to begin a new game')
@@ -103,6 +104,9 @@ class Cell:
             cell.is_mine = False
             cell.is_possible_mine = False
         Cell.set_mines()
+        widget = Cell.root.nametowidget('frm_header.l_mines_left')
+        widget.configure(text=settings.num_mines)
+        Cell.is_started = False
         Cell.start = None
 
     @staticmethod
@@ -126,15 +130,15 @@ class Cell:
 
     @staticmethod
     def set_mines():
-        cell_mines = random.sample(Cell.all, settings.NUM_MINES)
+        cell_mines = random.sample(Cell.all, settings.num_mines)
         for cell in cell_mines:
             cell.is_mine = True
 
     @staticmethod
     def timer(l_counter):
-        elapsed = math.ceil(time.time() - Cell.start)
-        l_counter.configure(text=elapsed)
         if Cell.is_started:
+            elapsed = math.ceil(time.time() - Cell.start)
+            l_counter.configure(text=elapsed)
             l_counter.after(1000, Cell.timer, l_counter)
         else:
             l_counter.configure(text=0)
